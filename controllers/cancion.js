@@ -6,13 +6,13 @@ const getCanciones = async (req, res) => {
 };
 
 const getCancionById = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     const result = await cancion.findById(id);
     res.status(result.status).json(result);
 };
 
 const createCancion = async (req, res) => {
-    const {titulo, artista, tono} = req.body;
+    const { titulo, artista, tono } = req.body;
     const result = await cancion.insert(titulo, artista, tono);
     res.status(result.status).json(result);
 };

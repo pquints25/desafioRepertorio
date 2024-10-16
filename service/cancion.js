@@ -27,8 +27,8 @@ const findAll = async () => {
 
 const findById = async (id) => {
     try{
-        const cancion = await cancion.findByPk(id);
-        if(cancion === null){
+        const cancionEncontrada = await cancion.findByPk(id);
+        if(cancionEncontrada === null){
             return{
                 msg: `La cancion con ID ${id} no existe`,
                 status: 204,
@@ -38,7 +38,7 @@ const findById = async (id) => {
         return {
             msg: `La cancion con ID ${id} existe`,
             status: 200,
-            datos: [cancion.dataValues]
+            datos: [cancionEncontrada.dataValues]
         };
     } catch (error){
         console.log(error.message);
@@ -54,11 +54,11 @@ const findById = async (id) => {
 
 const insert = async (titulo, artista, tono) => {
     try{
-        const cancion = await cancion.create({titulo, artista, tono});
+        const nuevaCancion = await cancion.create({titulo, artista, tono});
     return{
         msg: `La cancion de '${titulo}' de ${artista} se inserto correctamente`,
         status: 201,
-        datos: [cancion.dataValues]
+        datos: [nuevaCancion.dataValues]
     };
     } catch (error){
         console.log(error.message);
