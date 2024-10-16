@@ -1,28 +1,28 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const Cancion = require("../database/conexion");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../database/conexion');
 
-app.use (bodyParser.json());
+const Cancion = sequelize.define('Cancion', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    titulo: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    artista: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    tono: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+}, {
+    tableName:'canciones',
+    timestamps:false,
 
-//post
-app.post('/cancion', async (req, res) => {
-    const { titulo, artista, cancion} = req.body;
-    try{
-    const nuevaCancion = await Cancion.create({titulo,artista,cancion});
-    res.status(201).json(nuevaCancion);
-    } catch(error) {
-        console.log(error);
-        res.status(500).json({ error: `Error al agregar esta cancion 😢`})
-    }
 });
 
-app.get('/cancion', () => {
-    try{
-        const canciones = Cancion.findAll();
-        res.status(200).json(canciones);
-    } catch (error){
-        console.log('Error al obtener la cancion😒 que fuerte');
-        
-    }
-    
-})
+module.exports = Cancion;
