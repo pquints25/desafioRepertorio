@@ -2,7 +2,7 @@ const cancion = require("../models/cancion");
 
 const findAll = async () => {
     try {
-        const canciones = await Cancion.findAll();
+        const canciones = await cancion.findAll();
         if (canciones.length === 0) {
             return {
                 msg: 'No hay datos en la tabla',
@@ -27,7 +27,7 @@ const findAll = async () => {
 
 const findById = async (id) => {
     try{
-        const cancion = await Cancion.findById(id);
+        const cancion = await cancion.findByPk(id);
         if(cancion === null){
             return{
                 msg: `La cancion con ID ${id} no existe`,
@@ -52,9 +52,9 @@ const findById = async (id) => {
 };   
 
 
-const insert = (titulo, artista, tono) => {
+const insert = async (titulo, artista, tono) => {
     try{
-        const cancion = Cancion.create({titulo, artista, tono});
+        const cancion = await cancion.create({titulo, artista, tono});
     return{
         msg: `La cancion de '${titulo}' de ${artista} se inserto correctamente`,
         status: 201,
@@ -72,7 +72,7 @@ const insert = (titulo, artista, tono) => {
 
 const update = async (id, titulo, artista, tono) => {
 try{
-    await Cancion.update(
+    await cancion.update(
         { titulo, artista, tono},
         {where: {id} }
     );
@@ -93,7 +93,7 @@ try{
 
 const deleteById = async (id) => {
 try{
-    await Cancion.destroy({ where:{id}});
+    await cancion.destroy({ where:{id}});
     return{
         msg:`La cancion con ID ${id} se elimino correctamente`,
         status: 200,

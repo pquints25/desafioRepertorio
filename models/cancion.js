@@ -4,7 +4,6 @@ const sequelize = require('../database/conexion');
 const Cancion = sequelize.define('Cancion', {
     id: {
         type: DataTypes.INTEGER,
-        autoIncrement: true,
         primaryKey: true,
     },
     titulo: {

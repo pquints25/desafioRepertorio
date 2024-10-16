@@ -1,15 +1,18 @@
 const Server = require("./server/server");
-const sequelize = require('sequelize')
+
 const server = new Server();
 
-// <> Para sincronizar con mi BBDD
-sequelize.sync({ alter: true })
-.then(() => {
-    console.log("Las tablas existentes se han sincronizado.");
-})
-.catch(err => {
-    console.error("Error al sincronizar la tabla:", err);
-});
-
+/* sequelize.authenticate().then(() => {
+    console.log('funcionando');
+    
+}) */ //comprobar si sequelize esta funcionando
 
 server.listen();
+
+/* const repertorio = require("./models/cancion")
+
+repertorio.sync({alter:true}) *///sincronizar base de datos
+
+/* const Cancion = require("./models/cancion");
+
+Cancion.findAll(); */ //esto comprobara si podemos ejecutar las funciones 
