@@ -1,24 +1,20 @@
 const { Router } = require('express')
+const { findAllController, findByPkController , insertController, updateController, deleteByIdController, preInsertController, preUpdateController} = require('../controllers/cancion');
 
 const router = Router();
 
-router.get('/', (req, res) => {
-    res.send('findAll')
-}); 
+router.get('/', findAllController); 
 
-router.get('/:id', (req, res) => {
-    res.send('findByPk')
-}); 
-router.post('/', (req, res) => {
-    res.send('insert')
-});
+router.get('/findByPk', findByPkController);
 
-router.put('/:id', (req, res) => {
-    res.send('update')
-});
+router.post('/insert', preInsertController)
 
-router.delete('/:id', (req, res) => {
-    res.send('deleteById')
-}); 
+router.post('/insert', insertController) 
+
+router.post('/update', preUpdateController) 
+
+router.post('/update', updateController)
+
+router.get('/deleteById', deleteByIdController)  
 
 module.exports = router;

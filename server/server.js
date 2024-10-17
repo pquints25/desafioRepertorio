@@ -9,18 +9,13 @@ class Server {
         this.port = 3001;
         this.middlewares();
         this.routes();
-        this.views(); 
-    }
+        }
 
     middlewares() {
-        this.app.use(express.urlencoded({ extended: true }));
-        this.app.use(express.json());
-        this.app.use(express.static(path.join(__dirname, '../public')));
-    }
-
-    views() {
+        this.app.use(express.urlencoded({ extended: true })); //capturar req.body
         this.app.set('view engine', 'hbs');
-        this.app.set('views', path.join(__dirname, '../views')); 
+        this.app.use(express.json());
+        hbs.registerPartials(__dirname.slice(0, -7) + '/views/partials');
     }
 
     routes() {

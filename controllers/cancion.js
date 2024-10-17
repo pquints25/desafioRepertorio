@@ -1,73 +1,69 @@
-const cancion = require('../service/cancion');
+const {findAll, findByPk, insert, update, deleteById} = require('../service/cancion');
 
-const getCanciones = async (req, res) => {
-    try {
-        const result = await cancion.findAll();
-        res.status(result.status).json(result);
-    } catch (error) {
-        console.error('Error al obtener las canciones:', error);
-        res.status(500).json({ message: 'Error al obtener las canciones' });
+const findAllController = async (req, res) => {
+    const result = await findAll();
+    res.render('index', {
+        result
+    });
+    
+}
+
+const findByPkController = async (req, res) => {
+    const artista = req.query.artista;
+    const result = await cancion.findByPk(artista);
+    res.render('index', {
+        result
+    });
     }
+
+const preInsertController = (req, res) => {
+    res.render('insert')
+}
+
+const insertController = async (req, res) => {
+    const titulo = req.body.titulo;
+    const artista = req.body.artista;
+    const tono = req.body.tono;
+    const result = await insert(titulo, artista, tono);
+    res.render('index', {
+        result
+    });
+}
+
+const preUpdateController = async (req, res) => {
+    const artista = req.query.artista;
+    const result = await findByPk(artista);
+    result.datos = result.datos[0];
+    res.render('update', {
+        result
+    });
+}
+
+const updateController = async (req, res) => {
+    const id = req.body.id;
+    const titulo = req.body.titulo;
+    const artista = req.body.artista;
+    const tono = req.body.tono;
+    const result = await update(id, titulo, artista, tono);
+    res.render('index', {
+        result
+    });
 };
 
-const getCancionById = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const result = await cancion.findById(id);
-        if (!result) {
-            return res.status(404).json({ message: 'Canción no encontrada' });
-        }
-        res.status(result.status).json(result);
-    } catch (error) {
-        console.error('Error al obtener la canción por ID:', error);
-        res.status(500).json({ message: 'Error al obtener la canción' });
-    }
-};
-
-const createCancion = async (req, res) => {
-    const { titulo, artista, tono } = req.body;
-    try {
-        const result = await cancion.insert(titulo, artista, tono);
-        res.status(result.status).json(result);
-    } catch (error) {
-        console.error('Error al crear la canción:', error);
-        res.status(500).json({ message: 'Error al crear la canción' });
-    }
-};
-
-const updateCancion = async (req, res) => {
-    const { id } = req.params;
-    const { titulo, artista, tono } = req.body;
-    try {
-        const result = await cancion.update(id, titulo, artista, tono);
-        if (!result) {
-            return res.status(404).json({ message: 'Canción no encontrada para actualizar' });
-        }
-        res.status(result.status).json(result);
-    } catch (error) {
-        console.error('Error al actualizar la canción:', error);
-        res.status(500).json({ message: 'Error al actualizar la canción' });
-    }
-};
-
-const deleteCancion = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const result = await cancion.deleteById(id);
-        if (!result) {
-            return res.status(404).json({ message: 'Canción no encontrada para eliminar' });
-        }
-        res.status(result.status).json(result);
-    } catch (error) {
-        console.error('Error al eliminar la canción:', error);
-        res.status(500).json({ message: 'Error al eliminar la canción' });
-    }
+const deleteController = async (req, res) => {
+    const id = req.query.id;
+    const result = await deleteByid(id);
+    res.render('index', {
+        result
+    });
 };
 
 module.exports = {
-    getCanciones,
-    getCancionById,
-    createCancion,
-    updateCancion,
-    deleteCancion
+findAllController,
+findByPkController,
+preInsertController,
+insertController,
+preUpdateController,
+updateController,
+deleteController
 };
