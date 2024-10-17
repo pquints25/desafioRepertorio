@@ -1,5 +1,5 @@
 const express = require('express');
-const axios = require('axios');
+const hbs = require('hbs');
 const path = require('path');
 const cancion = require('../routes/cancion');
 
@@ -9,6 +9,7 @@ class Server {
         this.port = 3001;
         this.middlewares();
         this.routes();
+        this.views(); 
     }
 
     middlewares() {
@@ -17,13 +18,19 @@ class Server {
         this.app.use(express.static(path.join(__dirname, '../public')));
     }
 
+    views() {
+        this.app.set('view engine', 'hbs');
+        this.app.set('views', path.join(__dirname, '../views')); 
+    }
+
     routes() {
         this.app.use('/api/canciones', cancion);
-
         this.app.get('/', (req, res) => {
-            res.sendFile(path.join(__dirname, '../views/index.html'));
+            res.render('index'); 
         });
-
+        this.app.get('/canciones', (req, res) => {
+            cancionController.getCancionesView(req, res); // Asegúrate de que esto sea correcto
+        });
     }
 
     listen() {

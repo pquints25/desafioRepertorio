@@ -3,6 +3,16 @@ const Server = require("./server/server");
 
 const server = new Server();
 
+const sequelize = require('./database/conexion');
+
+sequelize.authenticate()
+.then(() => console.log('Conexión a la base de datos establecida'))
+.catch(err => console.error('Error al conectar con la base de datos:', err));
+
+const Cancion = require('./models/cancion');
+Cancion.sync({ alter: true })
+.then(() => console.log('Modelo sincronizado'))
+.catch(err => console.error('Error al sincronizar el modelo:', err));
 /* sequelize.authenticate().then(() => {
     console.log('funcionando');
     
@@ -17,6 +27,7 @@ repertorio.sync({alter:true}) *///sincronizar base de datos
 /* const Cancion = require("./models/cancion");
 
 Cancion.findAll(); */ //esto comprobara si podemos ejecutar las funciones 
+
 
 
 //MODELS/CANCIONES.js
@@ -49,14 +60,13 @@ const Cancion = sequelize.define('Cancion', {
 });
 
 module.exports = Cancion;
-
 //DATABASE/CONEXION.js
 const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize('postgres://postgres:1234@localhost:5432/repertorio');
 
-module.exports = sequelize;
 
+module.exports = sequelize;
 
 //SERVICE/CANCION.js
 const cancion = require("../models/cancion");
@@ -99,7 +109,7 @@ const findById = async (id) => {
         return {
             msg: `La cancion con ID ${id} existe`,
             status: 200,
-            datos: [cancion.dataValues]
+            datos: [cancionEncontrada.dataValues]
         };
     } catch (error){
         console.log(error.message);
@@ -188,13 +198,13 @@ const getCanciones = async (req, res) => {
 };
 
 const getCancionById = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     const result = await cancion.findById(id);
     res.status(result.status).json(result);
 };
 
 const createCancion = async (req, res) => {
-    const {titulo, artista, tono} = req.body;
+    const { titulo, artista, tono } = req.body;
     const result = await cancion.insert(titulo, artista, tono);
     res.status(result.status).json(result);
 };
@@ -221,249 +231,256 @@ module.exports = {
 };
 
 
+
 //ROUTES/CANCION.js
 const express = require('express');
 const router = express.Router();
 const cancionController = require('../controllers/cancion');
 
-router.get('/', cancionController.getCanciones);
-router.get('/:id', cancionController.getCancionById);
-router.post('/', cancionController.createCancion);
-router.put('/:id', cancionController.updateCancion);
-router.delete('/:id', cancionController.deleteCancion);
+router.get('/', cancionController.getCanciones); 
+router.get('/:id', cancionController.getCancionById); 
+router.post('/', cancionController.createCancion); 
+router.put('/:id', cancionController.updateCancion); 
+router.delete('/:id', cancionController.deleteCancion); 
 
 module.exports = router;
 
+
 //SERVER/SERVER
 const express = require('express');
-const hbs = require('hbs');
+const axios = require('axios');
 const path = require('path');
-const cancion = require('../routes/cancion')
-
-const app = express();
+const cancion = require('../routes/cancion');
 
 class Server {
-    constructor(){
+    constructor() {
         this.app = express();
         this.port = 3001;
         this.middlewares();
         this.routes();
     }
 
-    middlewares(){
-        this.app.use(express.urlencoded({extended: true}));
+    middlewares() {
+        this.app.use(express.urlencoded({ extended: true }));
         this.app.use(express.json());
-        this.app.use(express.static(path.join(__dirname, 'public')));
-        this.app.set('view engine', 'hbs');
-        hbs.registerPartials(__dirname.slice(0,-7) + '/views/partials')
+        this.app.use(express.static(path.join(__dirname, '../public')));
     }
 
-    routes(){
-        this.app.get('/api/canciones', require('../routes/cancion'))
+    routes() {
+        this.app.use('/api/canciones', cancion);
+
         this.app.get('/', (req, res) => {
-            res.render('index',{
-                titulo: 'Repertorio',
-                msg: 'Bienvenido a la Escuela de Musica E-Sueño'
-            });
+            res.sendFile(path.join(__dirname, '../views/index.html'));
         });
+
     }
 
-    listen(){
+    listen() {
         this.app.listen(this.port, () => {
             console.log(`Escuchando en el puerto ${this.port}`);
         });
     }
 }
+
 module.exports = Server;
 
-//VIEWS/INDEX.HBS
+
+//VIEWS/INDEX.HTML
 <!DOCTYPE html>
-<html lang="es">
-{{> head }}
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous" />
+</head>
 
 <body>
-    <div id="AgregarCancion">
-        <h2 class="pt-3">&#119070; Mi repertorio &#119070;</h2>
+  <div id="AgregarCancion">
+    <h2 class="pt-3">&#119070; Mi repertorio &#119070;</h2>
 
-        <div class="container pt-5 w-50">
-            <div>
-                <div class="form-group row">
-                    <label for="cancion" class="col-sm-2 col-form-label">Canción:</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="cancion" placeholder="Título de la canción" />
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="artista" class="col-sm-2 col-form-label">Artista: </label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="artista" placeholder="Nombre del artista" />
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="tono" class="col-sm-2 col-form-label">Tono:</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="tono" placeholder="Tono de la canción" />
-                    </div>
-                </div>
-                <button onclick="nuevaCancion()" id="agregar" class="m-auto btn btn-success">Agregar</button>
-                <button onclick="editarCancion()" id="editar" class="m-auto btn btn-info" disabled>Editar</button>
-            </div>
+    <div class="container pt-5 w-50">
+      <div>
+        <div class="form-group row">
+          <label for="name" class="col-sm-2 col-form-label">Canción:</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="cancion" value="A dios le pido" />
+          </div>
         </div>
-    </div>
-    <div id="ListaCanciones">
-        <hr />
-        <hr />
-        <h2>Tabla de canciones &#127908;</h2>
-
-        <div class="container pt-5 w-75">
-            <table class="table table-dark">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Canción</th>
-                        <th scope="col">Artista</th>
-                        <th scope="col">Tono</th>
-                        <th scope="col">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpo"></tbody>
-            </table>
+        <div class="form-group row">
+          <label for="email" class="col-sm-2 col-form-label">Artista: </label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="artista" value="Juanes" />
+          </div>
         </div>
+        <div class="form-group row">
+          <label for="rut" class="col-sm-2 col-form-label">Tono:</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="tono" value="Em" />
+          </div>
+        </div>
+        <button onclick="nuevaCancion()" id="agregar" class="m-auto btn btn-success">
+          Agregar
+        </button>
+        <button onclick="editarCancion()" id="editar" class="m-auto btn btn-info">
+          Editar
+        </button>
+      </div>
     </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+  <div id="ListaCanciones">
+    <hr />
+    <hr />
+    <h2>Tabla de canciones &#127908;</h2>
 
-    <script>
-        const apiUrl = 'http://localhost:3001/api/canciones'; // Cambia la URL según tu configuración
+    <div class="container pt-5 w-75">
+      <table class="table table-dark">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Canción</th>
+            <th scope="col">Artista</th>
+            <th scope="col">Tono</th>
+            <th scope="col">-</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpo"></tbody>
+      </table>
+    </div>
+  </div>
 
-        async function obtenerCanciones() {
-            try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-                if (data.status === 200) {
-                    const cuerpo = document.getElementById('cuerpo');
-                    cuerpo.innerHTML = ''; // Limpiar tabla antes de agregar nuevas filas
-                    data.datos.forEach((cancion, index) => {
-                        cuerpo.innerHTML += `
-                            <tr>
-                                <th scope="row">${index + 1}</th>
-                                <td>${cancion.titulo}</td>
-                                <td>${cancion.artista}</td>
-                                <td>${cancion.tono}</td>
-                                <td>
-                                    <button class="btn btn-warning" onclick="cargarCancion(${cancion.id})">Editar</button>
-                                    <button class="btn btn-danger" onclick="eliminarCancion(${cancion.id})">Eliminar</button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    console.log(data.msg);
-                }
-            } catch (error) {
-                console.error('Error al obtener canciones:', error);
-            }
+  <script>
+    let url = "/cancion";
+    let tbody = document.getElementById("cuerpo");
+    let cancion = document.getElementById("cancion");
+    let artista = document.getElementById("artista");
+    let tono = document.getElementById("tono");
+
+    let canciones = [];
+    window.onload = getData();
+
+    async function getData() {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error('Error al obtener datos: ' + response.statusText);
         }
+        const data = await response.json();
+        canciones = data;
+        tbody.innerHTML = "";
+        canciones.forEach((c, i) => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${c.titulo}</td>
+              <td>${c.artista}</td>
+              <td>${c.tono}</td>
+              <td>
+                <button class="btn btn-warning" onclick="prepararCancion(${i}, '${c.id}')">Editar</button>
+                <button class="btn btn-danger" onclick="eliminarCancion(${i}, '${c.id}')">Eliminar</button>
+              </td>
+            </tr>
+          `;
+        });
+        cancion.value = "";
+        artista.value = "";
+        tono.value = "";
+      } catch (error) {
+        console.error('Hubo un problema con la solicitud Fetch:', error);
+        alert('Error al cargar las canciones.');
+      }
+    }
 
-        async function nuevaCancion() {
-            const titulo = document.getElementById('cancion').value;
-            const artista = document.getElementById('artista').value;
-            const tono = document.getElementById('tono').value;
+    function nuevaCancion() {
+      const data = {
+        titulo: cancion.value,
+        artista: artista.value,
+        tono: tono.value
+      };
 
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ titulo, artista, tono }),
-                });
-                const data = await response.json();
-                alert(data.msg);
-                obtenerCanciones(); // Actualizar la lista después de agregar
-                limpiarCampos();
-            } catch (error) {
-                console.error('Error al agregar la canción:', error);
-            }
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Error al agregar canción: ' + response.statusText);
         }
+        return response.json();
+      })
+      .then(() => getData())
+      .catch(error => {
+        console.error('Error al agregar canción:', error);
+        alert('Error al agregar la canción.');
+      });
+    }
 
-        function cargarCancion(id) {
-            // Cargar canción para editar
-            fetch(`${apiUrl}/${id}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 200) {
-                        const cancion = data.datos[0];
-                        document.getElementById('cancion').value = cancion.titulo;
-                        document.getElementById('artista').value = cancion.artista;
-                        document.getElementById('tono').value = cancion.tono;
-                        document.getElementById('editar').onclick = () => actualizarCancion(id);
-                        document.getElementById('editar').disabled = false; // Activar el botón de editar
-                    } else {
-                        alert(data.msg);
-                    }
-                })
-                .catch(error => console.error('Error al cargar la canción:', error));
+    function eliminarCancion(i, id) {
+      fetch(`${url}?id=${id}`, { method: "DELETE" })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Error al eliminar canción: ' + response.statusText);
+          }
+          alert(`Canción ${canciones[i].titulo} eliminada`);
+          getData();
+        })
+        .catch(error => {
+          console.error('Error al eliminar canción:', error);
+          alert('Error al eliminar la canción.');
+        });
+    }
+
+    function prepararCancion(i, id) {
+      cancion.value = canciones[i].titulo;
+      artista.value = canciones[i].artista;
+      tono.value = canciones[i].tono;
+      document.getElementById("editar").setAttribute("onclick", `editarCancion('${id}')`);
+      document.getElementById("agregar").style.display = "none";
+      document.getElementById("editar").style.display = "block";
+    }
+
+    function editarCancion(id) {
+      const data = {
+        titulo: cancion.value,
+        artista: artista.value,
+        tono: tono.value
+      };
+
+      fetch(`${url}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Error al editar canción: ' + response.statusText);
         }
+        return response.json();
+      })
+      .then(() => {
+        getData();
+        document.getElementById("agregar").style.display = "block";
+        document.getElementById("editar").style.display = "none";
+      })
+      .catch(error => {
+        console.error('Error al editar canción:', error);
+        alert('Error al editar la canción.');
+      });
+    }
+  </script>
 
-        async function actualizarCancion(id) {
-            const titulo = document.getElementById('cancion').value;
-            const artista = document.getElementById('artista').value;
-            const tono = document.getElementById('tono').value;
+  <style>
+    body {
+      text-align: center;
+      background: #283593;
+      color: white;
+    }
+  </style>
 
-            try {
-                const response = await fetch(`${apiUrl}/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ titulo, artista, tono }),
-                });
-                const data = await response.json();
-                alert(data.msg);
-                obtenerCanciones(); // Actualizar la lista después de editar
-                limpiarCampos();
-                document.getElementById('editar').disabled = true; // Desactivar el botón de editar
-            } catch (error) {
-                console.error('Error al actualizar la canción:', error);
-            }
-        }
-
-        async function eliminarCancion(id) {
-            if (confirm('¿Estás seguro de que deseas eliminar esta canción?')) {
-                try {
-                    const response = await fetch(`${apiUrl}/${id}`, {
-                        method: 'DELETE',
-                    });
-                    const data = await response.json();
-                    alert(data.msg);
-                    obtenerCanciones(); // Actualizar la lista después de eliminar
-                } catch (error) {
-                    console.error('Error al eliminar la canción:', error);
-                }
-            }
-        }
-
-        function limpiarCampos() {
-            document.getElementById('cancion').value = '';
-            document.getElementById('artista').value = '';
-            document.getElementById('tono').value = '';
-            document.getElementById('editar').disabled = true; // Desactivar el botón de editar
-        }
-
-        // Cargar la lista de canciones al cargar la página
-        window.onload = obtenerCanciones;
-    </script>
 </body>
-</html>
 
-//VIEWS/PARTIALS/HEAD.HBS
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-            <title>{{e-sueno}}</title>
-</head>
+</html>

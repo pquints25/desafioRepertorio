@@ -3,7 +3,7 @@ const cancion = require("../models/cancion");
 const findAll = async () => {
     try {
         const canciones = await cancion.findAll();
-        if (canciones.length === 0) {
+        if (canciones.length == 0) {
             return {
                 msg: 'No hay datos en la tabla',
                 status: 204,
@@ -25,10 +25,10 @@ const findAll = async () => {
     }
 };
 
-const findById = async (id) => {
+const findByPk = async (id) => {
     try{
         const cancionEncontrada = await cancion.findByPk(id);
-        if(cancionEncontrada === null){
+        if(cancionEncontrada == 0){
             return{
                 msg: `La cancion con ID ${id} no existe`,
                 status: 204,
@@ -111,7 +111,7 @@ try{
 
 module.exports  = {
     findAll,
-    findById,
+    findByPk,
     insert,
     update,
     deleteById  

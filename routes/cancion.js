@@ -1,11 +1,24 @@
-const express = require('express');
-const router = express.Router();
-const cancionController = require('../controllers/cancion');
+const { Router } = require('express')
 
-router.get('/', cancionController.getCanciones); 
-router.get('/:id', cancionController.getCancionById); 
-router.post('/', cancionController.createCancion); 
-router.put('/:id', cancionController.updateCancion); 
-router.delete('/:id', cancionController.deleteCancion); 
+const router = Router();
+
+router.get('/', (req, res) => {
+    res.send('findAll')
+}); 
+
+router.get('/:id', (req, res) => {
+    res.send('findByPk')
+}); 
+router.post('/', (req, res) => {
+    res.send('insert')
+});
+
+router.put('/:id', (req, res) => {
+    res.send('update')
+});
+
+router.delete('/:id', (req, res) => {
+    res.send('deleteById')
+}); 
 
 module.exports = router;
