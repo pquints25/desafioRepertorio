@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+const { DataTypes, Model } = require('sequelize');
 const sequelize = require('../database/conexion');
 
 
@@ -9,16 +9,13 @@ const Cancion = sequelize.define('Cancion', {
         autoIncrement: true
     },
     titulo: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
+        type: DataTypes.STRING(50)
+        },
     artista: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
+        type: DataTypes.STRING(50)
+        },
     tono: {
-        type: DataTypes.STRING,
-        allowNull: false,
+        type: DataTypes.STRING(10)
     },
 }, {
     tableName:'canciones',

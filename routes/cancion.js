@@ -1,17 +1,17 @@
 const { Router } = require('express')
-const { findAllController, findByPkController , insertController, updateController, deleteByIdController, preInsertController, preUpdateController} = require('../controllers/cancion');
+const { findAllController, findByArtistaController , insertController, updateController, deleteByIdController, preInsertController, preUpdateController} = require('../controllers/cancion');
 
 const router = Router();
 
 router.get('/', findAllController); 
 
-router.get('/findByPk', findByPkController);
+router.get('/findByArtista', findByArtistaController);
 
-router.post('/insert', preInsertController)
+router.post('/pre-insert', preInsertController)
 
 router.post('/insert', insertController) 
 
-router.post('/update', preUpdateController) 
+router.post('/pre-update', preUpdateController) 
 
 router.post('/update', updateController)
 

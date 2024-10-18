@@ -25,18 +25,18 @@ const findAll = async () => {
     }
 };
 
-const findByPk = async (id) => {
+const findByArtista = async (artista) => {
     try{
-        const cancionEncontrada = await cancion.findByPk(id);
-        if(cancionEncontrada == 0){
+        const cancionEncontrada = await cancion.findByArtista({ where: {artista} });
+        if(cancionEncontrada.length == 0){
             return{
-                msg: `La cancion con ID ${id} no existe`,
+                msg: `La cancion con ID ${artista} no existe`,
                 status: 204,
                 datos: []
             };
         }
         return {
-            msg: `La cancion con ID ${id} existe`,
+            msg: `La cancion con artista ${artista} existe`,
             status: 200,
             datos: [cancionEncontrada.dataValues]
         };
@@ -56,7 +56,7 @@ const insert = async (titulo, artista, tono) => {
     try{
         const nuevaCancion = await cancion.create({titulo, artista, tono});
     return{
-        msg: `La cancion de '${titulo}' de ${artista} se inserto correctamente`,
+        msg: `El artista con nombre ${artista} se inserto correctamente`,
         status: 201,
         datos: [nuevaCancion.dataValues]
     };
@@ -77,8 +77,8 @@ try{
         {where: {id} }
     );
     return {
-        msg: `La cancion con ID ${id} se actualizo correctamente`,
-        status: 200,
+        msg: `El artista con nombre ${artista} se actualizo correctamente`,
+        status: 201,
         datos:[]
     };
 }  catch(error) {
@@ -95,7 +95,7 @@ const deleteById = async (id) => {
 try{
     await cancion.destroy({ where:{id}});
     return{
-        msg:`La cancion con ID ${id} se elimino correctamente`,
+        msg:`El id ${id} se elimino correctamente`,
         status: 200,
         datos:[]
     };
@@ -111,7 +111,7 @@ try{
 
 module.exports  = {
     findAll,
-    findByPk,
+    findByArtista,
     insert,
     update,
     deleteById  

@@ -1,14 +1,13 @@
-const {findAll, findByPk, insert, update, deleteById} = require('../service/cancion');
+const {findAll, findByArtista, insert, update, deleteById} = require('../service/cancion');
 
 const findAllController = async (req, res) => {
     const result = await findAll();
-    res.render('index', {
-        result
-    });
+    res.render('index', { canciones: result.datos});
+    };
     
-}
 
-const findByPkController = async (req, res) => {
+
+const findByArtistaController = async (req, res) => {
     const artista = req.query.artista;
     const result = await cancion.findByPk(artista);
     res.render('index', {
@@ -25,7 +24,12 @@ const insertController = async (req, res) => {
     const artista = req.body.artista;
     const tono = req.body.tono;
     const result = await insert(titulo, artista, tono);
-    res.render('index', {
+    res.redirect('/');
+
+    const nuevaCancion = await Cancion.create({
+        titulo, artista, tono
+    });
+    res.render('/', {
         result
     });
 }
@@ -60,7 +64,7 @@ const deleteByIdController = async (req, res) => {
 
 module.exports = {
 findAllController,
-findByPkController,
+findByArtistaController,
 preInsertController,
 insertController,
 preUpdateController,

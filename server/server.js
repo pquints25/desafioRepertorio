@@ -1,7 +1,6 @@
 const express = require('express');
 const hbs = require('hbs');
 const path = require('path');
-const cancion = require('../routes/cancion');
 
 class Server {
     constructor() {
@@ -14,17 +13,11 @@ class Server {
     middlewares() {
         this.app.use(express.urlencoded({ extended: true })); //capturar req.body
         this.app.set('view engine', 'hbs');
-        this.app.use(express.json());
-        hbs.registerPartials(__dirname.slice(0, -7) + '/views/partials');
+        hbs.registerPartials(path.join(__dirname, '../views/partials'));
     }
 
     routes() {
-        this.app.get('/', (req, res) => {
-            res.render('index'); 
-        });
-        this.app.get('/canciones', (req, res) => {
-            cancionController.getCancionesView(req, res); // Asegúrate de que esto sea correcto
-        });
+        this.app.use('/canciones', require('../routes/cancion'))
     }
 
     listen() {

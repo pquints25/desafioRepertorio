@@ -3,78 +3,15 @@ const Server = require("./server/server");
 
 const server = new Server();
 
-const sequelize = require('./database/conexion');
-
-sequelize.authenticate()
-.then(() => console.log('Conexión a la base de datos establecida'))
-.catch(err => console.error('Error al conectar con la base de datos:', err));
-
-const Cancion = require('./models/cancion');
-Cancion.sync({ alter: true })
-.then(() => console.log('Modelo sincronizado'))
-.catch(err => console.error('Error al sincronizar el modelo:', err));
-/* sequelize.authenticate().then(() => {
-    console.log('funcionando');
-    
-}) */ //comprobar si sequelize esta funcionando
-
 server.listen();
 
-/* const repertorio = require("./models/cancion")
-
-repertorio.sync({alter:true}) *///sincronizar base de datos
-
-/* const Cancion = require("./models/cancion");
-
-Cancion.findAll(); */ //esto comprobara si podemos ejecutar las funciones 
-
-
-
-//MODELS/CANCIONES.js
-const { DataTypes } = require('sequelize');
-const sequelize = require('../database/conexion');
-
-
-const Cancion = sequelize.define('Cancion', {
-    id: {
-        primaryKey: true,
-        type: DataTypes.INTEGER,
-        autoIncrement: true
-    },
-    titulo: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    artista: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    tono: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-}, {
-    tableName:'canciones',
-    timestamps:false,
-
-});
-
-module.exports = Cancion;
-//DATABASE/CONEXION.js
-const { Sequelize } = require('sequelize');
-
-const sequelize = new Sequelize('postgres://postgres:1234@localhost:5432/repertorio');
-
-
-module.exports = sequelize;
-
-//SERVICE/CANCION.js
+//SERVICE/CANCION.JS
 const cancion = require("../models/cancion");
 
 const findAll = async () => {
     try {
         const canciones = await cancion.findAll();
-        if (canciones.length === 0) {
+        if (canciones.length == 0) {
             return {
                 msg: 'No hay datos en la tabla',
                 status: 204,
@@ -96,18 +33,18 @@ const findAll = async () => {
     }
 };
 
-const findById = async (id) => {
+const findByArtista = async (artista) => {
     try{
-        const cancionEncontrada = await cancion.findByPk(id);
-        if(cancionEncontrada === null){
+        const cancionEncontrada = await cancion.findByArtista({ where: {artista} });
+        if(cancionEncontrada.length == 0){
             return{
-                msg: `La cancion con ID ${id} no existe`,
+                msg: `La cancion con ID ${artista} no existe`,
                 status: 204,
                 datos: []
             };
         }
         return {
-            msg: `La cancion con ID ${id} existe`,
+            msg: `La cancion con artista ${artista} existe`,
             status: 200,
             datos: [cancionEncontrada.dataValues]
         };
@@ -127,7 +64,7 @@ const insert = async (titulo, artista, tono) => {
     try{
         const nuevaCancion = await cancion.create({titulo, artista, tono});
     return{
-        msg: `La cancion de '${titulo}' de ${artista} se inserto correctamente`,
+        msg: `El artista con nombre ${artista} se inserto correctamente`,
         status: 201,
         datos: [nuevaCancion.dataValues]
     };
@@ -148,8 +85,8 @@ try{
         {where: {id} }
     );
     return {
-        msg: `La cancion con ID ${id} se actualizo correctamente`,
-        status: 200,
+        msg: `El artista con nombre ${artista} se actualizo correctamente`,
+        status: 201,
         datos:[]
     };
 }  catch(error) {
@@ -166,7 +103,7 @@ const deleteById = async (id) => {
 try{
     await cancion.destroy({ where:{id}});
     return{
-        msg:`La cancion con ID ${id} se elimino correctamente`,
+        msg:`El id ${id} se elimino correctamente`,
         status: 200,
         datos:[]
     };
@@ -182,73 +119,23 @@ try{
 
 module.exports  = {
     findAll,
-    findById,
+    findByArtista,
     insert,
     update,
     deleteById  
 };
 
+//DATABASE/CONEXION.JS
+const { Sequelize } = require('sequelize');
 
-//CONTROLLERS/CANCION.js
-const cancion = require('../service/cancion');
-
-const getCanciones = async (req, res) => {
-    const result = await cancion.findAll();
-    res.status(result.status).json(result);
-};
-
-const getCancionById = async (req, res) => {
-    const { id } = req.params;
-    const result = await cancion.findById(id);
-    res.status(result.status).json(result);
-};
-
-const createCancion = async (req, res) => {
-    const { titulo, artista, tono } = req.body;
-    const result = await cancion.insert(titulo, artista, tono);
-    res.status(result.status).json(result);
-};
-
-const updateCancion = async (req, res) => {
-    const { id } = req.params;
-    const { titulo, artista, tono } = req.body;
-    const result = await cancion.update(id, titulo, artista, tono);
-    res.status(result.status).json(result);
-};
-
-const deleteCancion = async (req, res) => {
-    const { id } = req.params;
-    const result = await cancion.deleteById(id);
-    res.status(result.status).json(result);
-};
-
-module.exports = {
-    getCanciones,
-    getCancionById,
-    createCancion,
-    updateCancion,
-    deleteCancion
-};
+const sequelize = new Sequelize('postgres://postgres:1234@localhost:5432/repertorio');
 
 
+module.exports = sequelize;
 
-//ROUTES/CANCION.js
+//SERVER/SERVER.JS
 const express = require('express');
-const router = express.Router();
-const cancionController = require('../controllers/cancion');
-
-router.get('/', cancionController.getCanciones); 
-router.get('/:id', cancionController.getCancionById); 
-router.post('/', cancionController.createCancion); 
-router.put('/:id', cancionController.updateCancion); 
-router.delete('/:id', cancionController.deleteCancion); 
-
-module.exports = router;
-
-
-//SERVER/SERVER
-const express = require('express');
-const axios = require('axios');
+const hbs = require('hbs');
 const path = require('path');
 const cancion = require('../routes/cancion');
 
@@ -258,21 +145,22 @@ class Server {
         this.port = 3001;
         this.middlewares();
         this.routes();
-    }
+        }
 
     middlewares() {
-        this.app.use(express.urlencoded({ extended: true }));
+        this.app.use(express.urlencoded({ extended: true })); //capturar req.body
+        this.app.set('view engine', 'hbs');
         this.app.use(express.json());
-        this.app.use(express.static(path.join(__dirname, '../public')));
+        hbs.registerPartials(__dirname.slice(0, -7) + '/views/partials');
     }
 
     routes() {
-        this.app.use('/api/canciones', cancion);
-
         this.app.get('/', (req, res) => {
-            res.sendFile(path.join(__dirname, '../views/index.html'));
+            res.render('index'); 
         });
-
+        this.app.get('/canciones', (req, res) => {
+            cancionController.getCancionesView(req, res); // Asegúrate de que esto sea correcto
+        });
     }
 
     listen() {
@@ -284,194 +172,185 @@ class Server {
 
 module.exports = Server;
 
+//ROUTES/CANCION.JS
+const { Router } = require('express')
+const { findAllController, findByArtistaController , insertController, updateController, deleteByIdController, preInsertController, preUpdateController} = require('../controllers/cancion');
 
-//VIEWS/INDEX.HTML
+const router = Router();
+
+router.get('/', findAllController); 
+
+router.get('/findByArtista', findByArtistaController);
+
+router.post('/pre-insert', preInsertController)
+
+router.post('/insert', insertController) 
+
+router.post('/pre-update', preUpdateController) 
+
+router.post('/update', updateController)
+
+router.get('/deleteById', deleteByIdController)  
+
+module.exports = router;
+
+//CONTROLLERS/CANCION.JS
+const {findAll, findByArtista, insert, update, deleteById} = require('../service/cancion');
+
+const findAllController = async (req, res) => {
+    const canciones = await findAll();
+    res.render('index', { result: {datos:canciones}});
+    };
+    
+
+
+const findByArtistaController = async (req, res) => {
+    const artista = req.query.artista;
+    const result = await cancion.findByPk(artista);
+    res.render('index', {
+        result
+    });
+    }
+
+const preInsertController = (req, res) => {
+    res.render('insert')
+}
+
+const insertController = async (req, res) => {
+    const titulo = req.body.titulo;
+    const artista = req.body.artista;
+    const tono = req.body.tono;
+    const result = await insert(titulo, artista, tono);
+
+    const nuevaCancion = await Cancion.create({
+        titulo, artista, tono
+    });
+    res.render('/', {
+        result
+    });
+}
+
+const preUpdateController = async (req, res) => {
+    const artista = req.query.artista;
+    const result = await findByPk(artista);
+    result.datos = result.datos[0];
+    res.render('update', {
+        result
+    });
+}
+
+const updateController = async (req, res) => {
+    const id = req.body.id;
+    const titulo = req.body.titulo;
+    const artista = req.body.artista;
+    const tono = req.body.tono;
+    const result = await update(id, titulo, artista, tono);
+    res.render('index', {
+        result
+    });
+};
+
+const deleteByIdController = async (req, res) => {
+    const id = req.query.id;
+    const result = await deleteByid(id);
+    res.render('index', {
+        result
+    });
+};
+
+module.exports = {
+findAllController,
+findByArtistaController,
+preInsertController,
+insertController,
+preUpdateController,
+updateController,
+deleteByIdController
+};
+
+
+//VIEWS/
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-    integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous" />
-</head>
+{{>head}}
 
 <body>
   <div id="AgregarCancion">
     <h2 class="pt-3">&#119070; Mi repertorio &#119070;</h2>
 
-    <div class="container pt-5 w-50">
-      <div>
+  <section>
+        <div class="container pt-5 w-50">
+      <form action="/insert" method="post"> {{!-- creo que aqui esta el problema, ver como unir el backend aqui --}}
         <div class="form-group row">
-          <label for="name" class="col-sm-2 col-form-label">Canción:</label>
+          <label for="titulo" class="form-label">Titulo</label>
           <div class="col-sm-10">
-            <input type="text" class="form-control" id="cancion" value="A dios le pido" />
+            <input type="text" class="form-control" id="titulo" name="titulo"/>
           </div>
         </div>
         <div class="form-group row">
-          <label for="email" class="col-sm-2 col-form-label">Artista: </label>
+          <label for="artista" class="form-label">Artista:</label>
           <div class="col-sm-10">
-            <input type="text" class="form-control" id="artista" value="Juanes" />
+            <input type="text" class="form-control" id="artista" name="artista"/>
           </div>
         </div>
         <div class="form-group row">
-          <label for="rut" class="col-sm-2 col-form-label">Tono:</label>
+          <label for="tono" class="form-label">Tono</label>
           <div class="col-sm-10">
-            <input type="text" class="form-control" id="tono" value="Em" />
+            <input type="text" class="form-control" id="tono" name="tono"/>
           </div>
         </div>
-        <button onclick="nuevaCancion()" id="agregar" class="m-auto btn btn-success">
-          Agregar
-        </button>
-        <button onclick="editarCancion()" id="editar" class="m-auto btn btn-info">
-          Editar
-        </button>
-      </div>
+        <button type="submit" class="m-auto btn btn-success">Agregar</button>
+      </form>
     </div>
-  </div>
+  
+  </section>
 
-  <div id="ListaCanciones">
-    <hr />
-    <hr />
+
+  <section>
+    <div id="ListaCanciones">
     <h2>Tabla de canciones &#127908;</h2>
+    </div>
 
     <div class="container pt-5 w-75">
       <table class="table table-dark">
         <thead>
           <tr>
-            <th scope="col">#</th>
+            <th scope="col">Identificar</th>
             <th scope="col">Canción</th>
             <th scope="col">Artista</th>
             <th scope="col">Tono</th>
-            <th scope="col">-</th>
+            <th scope="col">Actualizar</th>
+            <th scope="col">Eliminar</th>
           </tr>
         </thead>
-        <tbody id="cuerpo"></tbody>
+        <tbody>
+          {{#each result.datos}}
+          <tr>
+            <td>{{id}}</td>
+            <td>{{titulo}}</td>
+            <td>{{artista}}</td>
+            <td>{{tono}}</td>
+            <td><a href="/canciones/update?artista={{artista}}"><button class="btn btn-success">Actualizar</button></a></td>
+            <td><a href="/canciones/deleteByPk?id={{id}}"><button class="btn btn-danger">Eliminar</button></a></td>
+          </tr>
+          {{/each}}
+        </tbody>
       </table>
     </div>
-  </div>
+  </section>
+
+
 
   <script>
-    let url = "/cancion";
-    let tbody = document.getElementById("cuerpo");
-    let cancion = document.getElementById("cancion");
-    let artista = document.getElementById("artista");
-    let tono = document.getElementById("tono");
-
-    let canciones = [];
-    window.onload = getData();
-
-    async function getData() {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error('Error al obtener datos: ' + response.statusText);
-        }
-        const data = await response.json();
-        canciones = data;
-        tbody.innerHTML = "";
-        canciones.forEach((c, i) => {
-          tbody.innerHTML += `
-            <tr>
-              <td>${i + 1}</td>
-              <td>${c.titulo}</td>
-              <td>${c.artista}</td>
-              <td>${c.tono}</td>
-              <td>
-                <button class="btn btn-warning" onclick="prepararCancion(${i}, '${c.id}')">Editar</button>
-                <button class="btn btn-danger" onclick="eliminarCancion(${i}, '${c.id}')">Eliminar</button>
-              </td>
-            </tr>
-          `;
-        });
-        cancion.value = "";
-        artista.value = "";
-        tono.value = "";
-      } catch (error) {
-        console.error('Hubo un problema con la solicitud Fetch:', error);
-        alert('Error al cargar las canciones.');
-      }
-    }
-
-    function nuevaCancion() {
-      const data = {
-        titulo: cancion.value,
-        artista: artista.value,
-        tono: tono.value
-      };
-
-      fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Error al agregar canción: ' + response.statusText);
-        }
-        return response.json();
-      })
-      .then(() => getData())
-      .catch(error => {
-        console.error('Error al agregar canción:', error);
-        alert('Error al agregar la canción.');
-      });
-    }
-
-    function eliminarCancion(i, id) {
-      fetch(`${url}?id=${id}`, { method: "DELETE" })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Error al eliminar canción: ' + response.statusText);
-          }
-          alert(`Canción ${canciones[i].titulo} eliminada`);
-          getData();
-        })
-        .catch(error => {
-          console.error('Error al eliminar canción:', error);
-          alert('Error al eliminar la canción.');
-        });
-    }
-
     function prepararCancion(i, id) {
-      cancion.value = canciones[i].titulo;
-      artista.value = canciones[i].artista;
-      tono.value = canciones[i].tono;
-      document.getElementById("editar").setAttribute("onclick", `editarCancion('${id}')`);
+      document.getElementById("cancion").value = canciones[i].titulo;
+      document.getElementById("artista").value = canciones[i].artista;
+      document.getElementById("tono").value = canciones[i].tono;
       document.getElementById("agregar").style.display = "none";
-      document.getElementById("editar").style.display = "block";
-    }
-
-    function editarCancion(id) {
-      const data = {
-        titulo: cancion.value,
-        artista: artista.value,
-        tono: tono.value
-      };
-
-      fetch(`${url}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Error al editar canción: ' + response.statusText);
-        }
-        return response.json();
-      })
-      .then(() => {
-        getData();
-        document.getElementById("agregar").style.display = "block";
-        document.getElementById("editar").style.display = "none";
-      })
-      .catch(error => {
-        console.error('Error al editar canción:', error);
-        alert('Error al editar la canción.');
-      });
     }
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
   <style>
     body {
@@ -484,3 +363,70 @@ module.exports = Server;
 </body>
 
 </html>
+
+//VIEWS/
+<!DOCTYPE html>
+<html lang="en">
+{{> head}}
+<body>
+    <section>
+        <div class="container mt-3">
+            <form action="/insert" method="post">
+                <div class="mb-3">
+                    <label for="titiulo" class="form-label">Titulo</label>
+                    <input type="text" class="form-control" id="titulo" name="titulo">
+                </div>
+                <div class="mb-3">
+                    <label for="artista" class="form-label">Artista</label>
+                    <input type="text" class="form-control" id="artista" name="artista">
+                </div>
+                <div class="mb-3">
+                    <label for="tono" class="form-label">Tono</label>
+                    <input type="text" class="form-control" id="tono" name="tono">
+                </div>
+                <button type="submit" class="btn btn-primary">Insertar</button>
+            </form>
+        </div>
+    </section>
+</body>
+</html>
+
+//VIEWS
+<!DOCTYPE html>
+<html lang="en">
+{{ >head }}
+<body>
+<section>
+        <div class="container mt-3">
+            <form action="/update" method="post">
+                <div class="mb-3">
+                    <label for="id" class="form-label">Identificador</label>
+                    <input type="text" class="form-control" id="id" name="id" value="{{respuesta.datos.id}}">
+                </div>
+                <div class="mb-3">
+                    <label for="titiulo" class="form-label">Titulo</label>
+                    <input type="text" class="form-control" id="titulo" name="titulo" value="{{respuesta.datos.titulo}}">
+                </div>
+                <div class="mb-3">
+                    <label for="artista" class="form-label">Artista</label>
+                    <input type="text" class="form-control" id="artista" name="artista" value="{{respuesta.datos.artista}}">
+                </div>
+                <div class="mb-3">
+                    <label for="tono" class="form-label">Tono</label>
+                    <input type="text" class="form-control" id="tono" name="tono" value="{{respuesta.datos.tono}}">
+                </div>
+                <button type="submit" class="btn btn-primary">Actualizar</button>
+            </form>
+        </div>
+    </section>
+</body>
+</html>
+
+//VIEWS/PARTIALS/HEAD.HBS
+
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mi Repertorio</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
