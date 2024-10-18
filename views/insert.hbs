@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+{{> head}}
+<body>
+    <section>
+        <div class="container mt-3">
+            <form action="/canciones/insert" method="post">
+                <div class="mb-3">
+                    <label for="titiulo" class="form-label">Titulo</label>
+                    <input type="text" class="form-control" id="titulo" name="titulo">
+                </div>
+                <div class="mb-3">
+                    <label for="artista" class="form-label">Artista</label>
+                    <input type="text" class="form-control" id="artista" name="artista">
+                </div>
+                <div class="mb-3">
+                    <label for="tono" class="form-label">Tono</label>
+                    <input type="text" class="form-control" id="tono" name="tono">
+                </div>
+                <button type="submit" class="btn btn-primary">Insertar</button>
+            </form>
+        </div>
+    </section>
+
+    
+</body>
+</html>
