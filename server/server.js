@@ -1,7 +1,6 @@
 const express = require('express');
 const hbs = require('hbs');
-const path = require('path');
-const cancion = require('../routes/cancion');
+
 
 class Server {
     constructor() {
@@ -19,14 +18,10 @@ class Server {
     }
 
     routes() {
-        this.app.use('/api/canciones', cancion);
-        this.app.get('/', (req, res) => {
-            res.render('index'); 
-        });
-        this.app.get('/canciones', (req, res) => {
-            cancionController.getCancionesView(req, res); // Asegúrate de que esto sea correcto
-        });
-    }
+        this.app.get('/canciones', require("../routes/cancion")) 
+
+        };
+    
 
     listen() {
         this.app.listen(this.port, () => {

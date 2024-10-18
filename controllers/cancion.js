@@ -50,7 +50,7 @@ const updateController = async (req, res) => {
     });
 };
 
-const deleteController = async (req, res) => {
+const deleteByIdController = async (req, res) => {
     const id = req.query.id;
     const result = await deleteByid(id);
     res.render('index', {
@@ -65,5 +65,5 @@ preInsertController,
 insertController,
 preUpdateController,
 updateController,
-deleteController
+deleteByIdController
 };
